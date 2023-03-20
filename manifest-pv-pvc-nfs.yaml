@@ -1,26 +1,27 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: my-nfs-volume
+  name: CORE-Kuber
 spec:
   capacity:
-    storage: 1Gi
+    storage: 500Gi
   accessModes:
     - ReadWriteMany
   nfs:
-    server: my-nfs-server.example.com
-    path: /path/to/nfs/share
+    server: 192.168.0.2
+    path: /volume1/CORE-Kuber1
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: my-nfs-claim
+  name: CORE-Kuber1
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 500Gi
   selector:
     matchLabels:
-      name: my-nfs-volume
+      type: nfs
+      name: CORE-Kuber
