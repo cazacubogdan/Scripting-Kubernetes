@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: CORE-Kuber
+  name: core-kuber
 spec:
   capacity:
     storage: 500Gi
@@ -14,7 +14,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: CORE-Kuber1
+  name: core-kuber1
 spec:
   accessModes:
     - ReadWriteMany
@@ -24,4 +24,4 @@ spec:
   selector:
     matchLabels:
       type: nfs
-      name: CORE-Kuber
+      name: core-kuber
