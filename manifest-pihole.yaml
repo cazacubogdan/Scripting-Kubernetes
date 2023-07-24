@@ -1,48 +1,118 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: pihole
-  namespace: infrastructure
+  name: pihole-primary
+  namespace: default
+  labels:
+    stack: tools
 spec:
-  hostNetwork: true
-  dnsPolicy: "None"
-  dnsConfig:
-    nameservers:
-      # upstream DNS used by pihole.
-      - 192.168.0.254
-  containers:
-    - name: pihole
-      # https://hub.docker.com/r/pihole/pihole/tags
-      image: pihole/pihole:2021.10
-      imagePullPolicy: IfNotPresent
-      env:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+        stack: tools
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: pihole-primary
+        image: pihole/pihole
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 67
+          name: dhcp
+          protocol: UDP
+        - containerPort: 8000
+          name: web
+          protocol: TCP
+        volumeMounts:
+        - name: volume-pihole
+          mountPath: /etc/pihole
+        - name: volume-dnsmasq
+          mountPath: /etc/dnsmasq.d
+        env:
+        - name: DNSMASQ_LISTENING
+          value: "local"
+        - name: DNSMASQ_USER
+          value: "pihole"
         - name: TZ
           value: "Europe/Warsaw"
         - name: WEBPASSWORD
-          value: Bogolino1!
-      securityContext:
-        privileged: true
-      ports:
-        - containerPort: 53
-          protocol: TCP
-        - containerPort: 53
-          protocol: UDP
-        - containerPort: 67
-          protocol: UDP
-        - containerPort: 80
-          protocol: TCP
-        - containerPort: 443
-          protocol: TCP
-      volumeMounts:
-        - name: etc
-          mountPath: /etc/pihole
-        - name: dnsmasq
-          mountPath: /etc/dnsmasq.d
-
-  volumes:
-    - name: etc
-      persistentVolumeClaim:
-        claimName: pihole-etc-pvc
-    - name: dnsmasq
-      persistentVolumeClaim:
-        claimName: pihole-dnsmasq-pvc
+          value: "Bogolino1!"
+        - name: WEB_PORT
+          value: "8000"
+      volumes:
+      - name: volume-pihole
+        persistentVolumeClaim:
+          claimName: volume-pihole-pvc
+      - name: volume-dnsmasq
+        persistentVolumeClaim:
+          claimName: volume-dnsmasq-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole-primary-service
+  namespace: default
+  labels:
+    stack: tools
+spec:
+  type: ClusterIP
+  selector:
+    app: pihole
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+    targetPort: 53
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+    targetPort: 53
+  - name: dhcp
+    port: 67
+    protocol: UDP
+    targetPort: 67
+  - name: web
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: volume-pihole-pvc
+  namespace: default
+  labels:
+    stack: tools
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: volume-dnsmasq-pvc
+  namespace: default
+  labels:
+    stack: tools
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn
