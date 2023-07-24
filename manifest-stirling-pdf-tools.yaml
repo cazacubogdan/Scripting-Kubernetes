@@ -14,6 +14,7 @@ spec:
     metadata:
       labels:
         app: pdf-tools
+        stack: tools
     spec:
       containers:
       - name: pdf-tools
@@ -37,28 +38,33 @@ spec:
       volumes:
       - name: volume-data
         persistentVolumeClaim:
-          claimName: pdf-tools-data
+          claimName: volume-data-pvc
       - name: volume-config
         persistentVolumeClaim:
-          claimName: pdf-tools-config
+          claimName: volume-config-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: pdf-tools
   namespace: default
+  labels:
+    stack: tools
 spec:
   ports:
   - port: 80
     targetPort: 8080
   selector:
     app: pdf-tools
+    stack: tools
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pdf-tools-data
+  name: volume-data-pvc
   namespace: default
+  labels:
+    stack: tools
 spec:
   accessModes:
   - ReadWriteMany
@@ -70,8 +76,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pdf-tools-config
+  name: volume-config-pvc
   namespace: default
+  labels:
+    stack: tools
 spec:
   accessModes:
   - ReadWriteMany
