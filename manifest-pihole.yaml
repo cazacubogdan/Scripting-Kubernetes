@@ -38,19 +38,11 @@ spec:
           mountPath: /etc/pihole
         - name: dnsmasq
           mountPath: /etc/dnsmasq.d
-      resources:
-        requests:
-          memory: 128Mi
-          cpu: 100m
-        limits:
-          memory: 2Gi
-          cpu: 1
+
   volumes:
     - name: etc
-      hostPath:
-        path: /data/pihole/etc
-        type: Directory
+      persistentVolumeClaim:
+        claimName: pihole-etc-pvc
     - name: dnsmasq
-      hostPath:
-        path: /data/pihole/dnsmasq.d
-        type: Directory
+      persistentVolumeClaim:
+        claimName: pihole-dnsmasq-pvc
