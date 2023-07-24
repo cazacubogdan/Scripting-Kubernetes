@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pdf-tools
-  namespace: <namespace>
+  namespace: default
   labels:
     stack: tools
 spec:
