@@ -1,0 +1,42 @@
+sudo hostnamectl set-hostname kuber-v-k10
+
+main:
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.25.11+k3s1 sh -s - server \
+--token=PardonInfluenceGodEachTightenPunishForwardCoarseLoveRisk3 \
+--tls-san=kuber-v.secretchip.net \
+--tls-san=192.168.0.254 \
+--write-kubeconfig-mode 644 \
+--cluster-init
+
+nodes:
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.25.11+k3s1 sh -s - server \
+--token=PardonInfluenceGodEachTightenPunishForwardCoarseLoveRisk3 \
+--tls-san kuber-v.secretchip.net \
+--tls-san 192.168.0.254 \
+--server https://192.168.0.46:6443
+
+(!) uninstall:
+/usr/local/bin/k3s-uninstall.sh
+
+check:
+sudo kubectl get nodes
+
+sudo ufw disable & reboot
+
+cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+
+install helm:
+curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
+sudo apt-get install apt-transport-https --yes
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+sudo apt-get update
+sudo apt-get install helm
+
+
+https://ranchermanager.docs.rancher.com/v2.0-v2.4/pages-for-subheaders/install-upgrade-on-a-kubernetes-cluster#4-choose-your-ssl-configuration
+
+helm install rancher rancher-stable/rancher \
+  --namespace cattle-system \
+  --set hostname=rancher-v.secretchip.net
+
+  sudo kubectl -n cattle-system get deploy rancher
