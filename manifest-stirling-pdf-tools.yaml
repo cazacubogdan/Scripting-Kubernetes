@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirling-pdf
+  namespace: <namespace>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stirling-pdf
+  template:
+    metadata:
+      labels:
+        app: stirling-pdf
+    spec:
+      containers:
+      - name: stirling-pdf
+        image: frooodle/s-pdf
+        securityContext:
+          allowPrivilegeEscalation: false
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: volume-data
+          mountPath: /usr/share/tesseract-ocr/4.00/tessdata
+        - name: volume-config
+          mountPath: /configs
+        env:
+        - name: APP_LOCALE
+          value: "en_US"
+        - name: APP_HOME_NAME
+          value: "-"
+        - name: ALLOW_GOOGLE_VISIBILITY
+          value: "false"
+      volumes:
+      - name: volume-data
+        persistentVolumeClaim:
+          claimName: pdf-tools-data
+      - name: volume-config
+        persistentVolumeClaim:
+          claimName: pdf-tools-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stirling-pdf
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: stirling-pdf
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdf-tools-data
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdf-tools-config
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn
